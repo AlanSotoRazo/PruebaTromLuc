@@ -1,6 +1,6 @@
 FROM python:3.9-slim
 
-# Instalar dependencias del sistema necesarias para `dlib`, `face-recognition`, etc.
+# Instalar dependencias del sistema necesarias para dlib, face-recognition, opencv, etc.
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -13,7 +13,10 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libtiff-dev \
     zlib1g-dev \
-    && apt-get clean
+    libgl1 \
+    libglib2.0-0 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Crear un entorno virtual y activarlo
 RUN python -m venv /opt/venv
