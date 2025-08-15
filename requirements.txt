@@ -1,6 +1,6 @@
 
 blinker==1.9.0
-click==8.2.1
+click==8.1.7
 cmake==4.1.0
 colorama==0.4.6
 dlib==20.0.0
