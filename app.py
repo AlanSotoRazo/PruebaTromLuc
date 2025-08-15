@@ -14,12 +14,21 @@ from io import BytesIO
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
 
-# Conexión a MySQL
+# Configuración de conexión MySQL con Railway
+db_config = {
+    "host": "nozomi.proxy.rlwy.net",
+    "user": "root",
+    "password": "yaOlXlhNiURwnOZzlFKoUkbODGwVEaWS",
+    "database": "railway",
+    "port": 16745
+}
+
 conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="sis_asistencia"
+    host=db_config["host"],
+    user=db_config["user"],
+    password=db_config["password"],
+    database=db_config["database"],
+    port=db_config["port"]
 )
 cursor = conexion.cursor()
 
@@ -130,7 +139,7 @@ def registrar_asistencia():
 
         nombre_archivo = f"{nombre}_{apellido}_{hoy.strftime('%Y%m%d')}.jpg"
 
-# ---------------- AQUI SE PONEN CONVERTIDAS LA LATITUD Y LONGITUD DE MAZDA y editas el mensaje----------------
+        # ---------------- AQUI SE PONEN CONVERTIDAS LA LATITUD Y LONGITUD DE MAZDA y editas el mensaje----------------
         lat_min = 20.5560000 
         lat_max = 20.5575000
         lon_min = -101.2050000
@@ -194,10 +203,7 @@ def mostrar_registros():
 def regresar_registros():
     return render_template('registro.html')
 
-
-
 # ---------------- PARTE DE EXCEL, SE DEBE MODIFICAR PARA LOS FILTROS ----------------
-    
 @app.route('/descargar_excel')
 def descargar_excel():
     try:
@@ -256,9 +262,7 @@ def descargar_excel():
     except Exception as e:
         return f"❌ Error al generar Excel: {str(e)}"
     
-
-
-    # ---------------- CERRAR SESIÓN DE TODOS LADOS  ----------------
+# ---------------- CERRAR SESIÓN DE TODOS LADOS ----------------
 @app.route('/logout')
 def logout():
     session.clear()
