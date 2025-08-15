@@ -15,12 +15,12 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && apt-get clean
 
-# Crear un entorno virtual
+# Crear un entorno virtual y activarlo
 RUN python -m venv /opt/venv
 
-# Activar entorno e instalar dependencias
+# Activar el entorno virtual e instalar dependencias
 COPY requirements.txt /app/
-RUN /opt/venv/bin/pip install -r /app/requirements.txt
+RUN /opt/venv/bin/pip install --upgrade pip setuptools && /opt/venv/bin/pip install -r /app/requirements.txt
 
 # Copiar el código fuente
 COPY . /app/
