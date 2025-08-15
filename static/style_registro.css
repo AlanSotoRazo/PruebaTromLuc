@@ -1,0 +1,194 @@
+/* ======= ESTILOS BASE (Post-normalize.css) ======= */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background-image: url('/static/imgs/limpiando.jpg');
+  background-size: cover;
+  background-position: center 10%;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  /* Evita scroll global */
+}
+
+/* ======= HEADER Y NAVEGACIÓN ======= */
+header {
+  background-color: #F28A7A;
+  color: white;
+  padding: 10px 20px;
+}
+
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-left {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.nav-left img {
+  width: 100px;
+  height: auto;
+  display: block;
+}
+
+.nav-right button {
+  background-color: #E5402F;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.nav-right button:hover {
+  background-color: #C00000;
+}
+
+/* ======= CONTENEDOR PRINCIPAL ======= */
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  height: calc(100vh - 60px);
+  /* Ajusta según alto de header */
+  overflow: auto;
+  /* Scroll aquí si el contenido es demasiado grande */
+}
+
+/* ======= FORMULARIO ======= */
+.form-container {
+  background: white;
+  padding: 25px 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 360px;
+  box-sizing: border-box;
+  max-height: 100%;
+  /* No superar la altura disponible */
+  overflow-y: auto;
+  /* Scroll interno si es necesario */
+}
+
+form label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+}
+
+form input[type="text"],
+form input[type="hidden"] {
+  width: 100%;
+  padding: 7px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+  border: none;
+  /* Elimina todos los bordes */
+  border-bottom: 2px solid rgb(0, 0, 0);
+  /* Agrega solo el borde inferior negro */
+  outline: none;
+}
+
+/* ======= VIDEO Y CANVAS ======= */
+video {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin-top: 10px;
+  background-color: black;
+}
+
+canvas {
+  display: none;
+}
+
+/* ======= BOTONES ======= */
+button#abrirCamaraBtn,
+button#tomarFoto,
+input[type="submit"] {
+  width: 100%;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button#abrirCamaraBtn {
+  margin-top: 15px;
+  padding: 12px;
+  background-color: #E5402F;
+}
+
+button#abrirCamaraBtn:hover {
+  background-color: #C00000;
+}
+
+button#tomarFoto {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #E5402F;
+  font-size: 15px;
+}
+
+button#tomarFoto:hover {
+  background-color: #C00000;
+}
+
+input[type="submit"] {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #E5402F;
+}
+
+input[type="submit"]:hover {
+  background-color: #C00000;
+}
+
+.div-labelusuario {
+  margin-top: 15px;
+}
+
+.div-labelusuario label {
+  display: block;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.div-labelusuario select {
+  width: 100%;
+  /* Igual que los inputs */
+  padding: 7px;
+  margin-top: 5px;
+  box-sizing: border-box;
+  font-size: 14px;
+  appearance: none;
+  /* Quita estilo nativo si hace falta */
+  background-color: white;
+  /* Fondo blanco igual que inputs */
+  background-image: url("data:image/svg+xml,...");
+  /* icono personalizado, opcional */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  border: none;
+  /* Elimina todos los bordes */
+  border-bottom: 2px solid rgb(0, 0, 0);
+  /* Agrega solo el borde inferior negro */
+  outline: none;
+}

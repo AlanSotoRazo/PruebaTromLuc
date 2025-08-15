@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Asistencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_asistencia.css') }}" />
+</head>
+
+<body>
+  <header>
+    <nav class="top-nav">
+      <div class="nav-left">
+        <img src="{{ url_for('static', filename='imgs/logo.png') }}" alt="Logo">
+      </div>
+      <div class="nav-right">
+        <button onclick="window.location.href='/logout';">Cerrar sesión</button>
+      </div>
+    </nav>
+  </header>
+<!-- CONTENEDOR PRINCIPAL -->
+<div class="Div-Principal">
+
+<!-- aqui esta dentro el contenedor de la foto para poder editarla correctamente -->
+<div class="form-container">
+  <div class="video-container">
+<video id="video" width="320" height="240" autoplay></video>
+  <canvas id="canvas" style="display: none;"></canvas>
+  </div>
+  <button id="abrirCamaraBtn">Abrir Cámara</button>
+    <button id="tomarFotoBtn" style="display:none;">Tomar Foto</button>
+    <button id="cerrarCamaraBtn" style="display:none;">Cerrar Cámara</button>
+</div>
+  
+
+  <p id="resultado"></p>
+
+  <!-- Inputs ocultos para ubicación -->
+   <!-- Escribe aquí tu comentario -->
+
+  <input type="hidden" id="latitud" name="latitud">
+  <input type="hidden" id="longitud" name="longitud">
+</div>
+
+
+
+ 
+</body>
+
+<!-- SCRIPT (DEBEMOS SEPARARLOS) PARA UBICACION Y MANDA LA LATITUD Y LONGITUD -->
+ <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const abrirCamaraBtn = document.getElementById('abrirCamaraBtn');
+    const tomarFotoBtn = document.getElementById('tomarFotoBtn');
+    const cerrarCamaraBtn = document.getElementById('cerrarCamaraBtn');
+    const resultado = document.getElementById('resultado');
+
+    let stream;
+
+    // Obtener ubicación al cargar
+ // Función para obtener ubicación
+    function obtenerUbicacion() {
+      return new Promise((resolve, reject) => {
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(function (position) {
+            // Asignar las coordenadas de latitud y longitud
+            document.getElementById("latitud").value = position.coords.latitude;
+            document.getElementById("longitud").value = position.coords.longitude;
+            resolve();  // Resolver la promesa si la ubicación se obtiene correctamente
+          }, function (error) {
+            alert("Error obteniendo la ubicación: " + error.message);
+            document.getElementById("latitud").value = '';
+            document.getElementById("longitud").value = '';
+            reject(error);  // Rechazar la promesa si ocurre un error
+          });
+        } else {
+          alert("Este navegador no soporta geolocalización.");
+          reject("Geolocalización no soportada");
+        }
+      });
+    }
+
+    // Llamar la función de ubicación al cargar la página
+    window.onload = function () {
+      obtenerUbicacion()
+        .then(() => {
+          // Si se obtuvo la ubicación correctamente, permitir abrir la cámara
+          abrirCamaraBtn.style.display = 'inline-block';
+        })
+        .catch((error) => {
+          // Si la ubicación no se obtiene correctamente, no permitir abrir la cámara
+          abrirCamaraBtn.style.display = 'none';
+          console.error("Error obteniendo la ubicación", error);
+        });
+    };
+
+    abrirCamaraBtn.addEventListener('click', async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        tomarFotoBtn.style.display = 'inline-block';
+        cerrarCamaraBtn.style.display = 'inline-block';
+        abrirCamaraBtn.style.display = 'none';
+      } catch (err) {
+        alert("No se pudo acceder a la cámara: " + err.message);
+      }
+    });
+
+    cerrarCamaraBtn.addEventListener('click', () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      video.style.display = 'none';
+      tomarFotoBtn.style.display = 'none';
+      cerrarCamaraBtn.style.display = 'none';
+      abrirCamaraBtn.style.display = 'inline-block';
+    });
+
+    tomarFotoBtn.addEventListener('click', () => {
+      const contexto = canvas.getContext('2d');
+      canvas.width = 320;
+      canvas.height = 240;
+      contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+
+      const lat = document.getElementById("latitud").value;
+      const lon = document.getElementById("longitud").value;
+
+       // Validar si las coordenadas no están vacías antes de enviar
+      if (!lat || !lon) {
+        resultado.innerText = "❌ No se pudo obtener la ubicación. Asegúrese de que la geolocalización esté habilitada.";
+        return; // Detener la ejecución si no hay ubicación válida
+      }
+
+
+      fetch('/registrar_asistencia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          foto: dataURL,
+          latitud: lat,
+          longitud: lon
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          resultado.innerText = data.message || "✅ Foto enviada correctamente.";
+        })
+        .catch(err => {
+          resultado.innerText = "❌ Error al registrar asistencia.";
+          console.error(err);
+        });
+
+      // Detener la cámara
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      video.style.display = 'none';
+      tomarFotoBtn.style.display = 'none';
+      cerrarCamaraBtn.style.display = 'none';
+      abrirCamaraBtn.style.display = 'inline-block';
+    });
+  </script>
+</html>

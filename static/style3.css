@@ -1,0 +1,201 @@
+html,
+body {
+    font-family: 'Roboto', sans-serif;
+    height: 100%;
+    margin: 0;
+    padding: 5px;
+    background-color: rgb(255, 255, 255);
+}
+
+
+.Div-Principal {
+    display: flex;
+    width: 100%;
+    height: 95vh;
+    background: red;
+}
+
+.Div-Izquierda {
+    position: relative;
+    width: 50%;
+    height: auto;
+    color: white;
+    overflow: hidden; /* Para que no se desborde el fondo */
+}
+
+/* Pseudo-elemento con la imagen de fondo y el filtro */
+.Div-Izquierda::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/imgs/limpiando.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(1px) brightness(80%);
+    z-index: 0; /* Detrás del contenido */
+}
+
+/* Asegúrate de que el contenido esté sobre la imagen filtrada */
+.Div-Izquierda > * {
+    position: relative;
+    z-index: 1;
+}
+
+.Div-Logo{
+    width: 100%;
+    height: auto;
+    margin-bottom: 30px;
+}
+
+.Div-Bienvenida {
+    width: 100%;
+    height: auto;
+    color: white;
+}
+
+.Div-Bienvenida h2 {
+    font-size: 30px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.Div-Bienvenida p {
+     font-size: 20px;
+    font-weight: 700;
+     text-align: center;
+}
+
+.Div-Derecha {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    height: auto;
+    background-image: url('/static/imgs/aires.jpg');
+    /* Ruta a tu imagen */
+    background-size: cover;
+    /* Escala la imagen para cubrir todo el div */
+    background-position: center;
+    /* Centra la imagen */
+    background-repeat: no-repeat;
+    /* Evita que se repita */
+}
+
+#formPrin {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    height: 40%;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+
+}
+
+.Div-1 {
+    margin: auto;
+    width: 100%;
+    height: auto;
+}
+
+.Div-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.Div-label label {
+    font-weight: 700;
+    font-size: 40px;
+    color: white;
+}
+
+.Div-input {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+
+}
+
+input {
+    background-color: rgba(0, 0, 0, 0.3); /* mismo color que el form */
+    color: white; /* para que el texto contraste y se vea */
+    width: 50%;
+    height: 30px;
+    border: none;                        /* Elimina todos los bordes */
+    border-bottom: 2px solid rgb(255, 255, 255);     /* Agrega solo el borde inferior negro */
+    outline: none;                      /* Quita el borde azul al hacer foco (opcional) */
+}
+
+.div-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+}
+
+button {
+    height: auto;
+    width: auto;
+    background: #E5402F;
+    color: #FFFFFF;
+    cursor: pointer;
+    padding: 5px;
+    border: none;
+}
+
+button:hover {
+  background-color: #C00000; /* color más oscuro cuando pasas el mouse */
+}
+
+
+/*EMPEZAMOS A DARLE FORMATO EN TABLET Y CEL */
+
+/*TABLET*/
+@media only screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape),
+only screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .Div-Principal{
+        width: 100%;
+        height: 100vh;
+        flex-direction: column;
+    }
+
+    .Div-Izquierda{
+        width: 100%;
+        height: 100vh;
+    }
+
+    .Div-Derecha{
+        width: 100%;
+         height: 100vh;
+    }
+}
+
+
+/*PARA CELULAR*/
+@media (max-width: 768px) and (orientation: portrait) {
+    .Div-Principal{
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+     .Div-Izquierda{
+        width: 100%;
+        height: 100vh;
+    }
+
+    .Div-Derecha{
+        width: 100%;
+          height: 100vh;
+    }
+}

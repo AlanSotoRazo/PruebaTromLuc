@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style3.css') }}">
+</head>
+
+<body>
+    <!-- CONTENEDOR PRINCIPAL DIVIDIDO EN IZQUIERDA Y DERECHA  -->
+    <div class="Div-Principal">
+        <div class="Div-Izquierda">
+            <div class="Div-Logo">
+                  <!-- lOGO BLOQUEADO X EL MOMENTO -->
+                <img src="{{ url_for('static', filename='imgs/logo.png') }}" alt="Logo">
+            </div>
+            <div class="Div-Bienvenida">
+                <h2>Bienvenidos al sistema de control de asistencía</h2>
+                <p>Servicios Mécanicos Industriales</p>
+            </div>
+        </div>
+        <div class="Div-Derecha">
+            <form id="formPrin" action="{{ url_for('login') }}" method="POST">
+                <div class="Div-1">
+                    <div class="Div-label"><label for="password">Login</label>
+                    </div>
+                    <div class="Div-input">
+                        <input type="password" name="password" required>
+                    </div>
+                    
+                </div>
+
+                <div class="div-btn">
+                    <button type="submit">INGRESAR</button>
+                </div>
+
+                {% if error %}
+                <p style="color:red;">{{ error }}</p>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tabla de Registros</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_registros.css') }}"/>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <nav class="top-nav">
+      <div class="nav-left">
+        <img src="{{ url_for('static', filename='imgs/logo.png') }}" alt="Logo">
+      </div>
+      <div class="nav-right">
+        <a href="{{ url_for('regresar_registros') }}">
+          <button type="button">Regresar</button>
+        </a>
+        <button type="button" onclick="descargarExcel()">Descargar Excel</button>
+
+<script>
+function descargarExcel() {
+    const fecha = document.getElementById('fecha').value;
+    let url = '/descargar_excel';
+    if (fecha) {
+        url += '?fecha=' + encodeURIComponent(fecha);
+    }
+    window.location.href = url;
+}
+</script>
+      </div>
+    </nav>
+  </header>
+
+  <!-- titulo, de preferencia meterlo en un div por mejor estructura -->  
+  <h2 style="text-align:center;">Registros de Asistencia</h2>
+
+  <!-- FILTRO POR DÍA -->
+  <!-- FILTRO POR FECHA -->
+<form method="get" action="{{ url_for('mostrar_registros') }}" style="text-align:center; margin-bottom: 20px;">
+  <label for="fecha">Filtrar por fecha:</label>
+  <input type="date" name="fecha" id="fecha" value="{{ request.args.get('fecha', '') }}">
+  <button id="btnfiltro" type="submit">Filtrar</button>
+</form>
+
+
+  <!-- TABLA -->
+  <div class="container">
+    <table>
+      <thead>
+        <tr>
+          <th>Código Empleado</th>
+          <th>Nombre Completo</th>
+          <th>Ubicación</th>
+          <th>Foto</th>
+          <th>Fecha</th>
+          <th>Hora Entrada</th>
+          <th>Hora Salida</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in registros %}
+        <tr>
+          <td>{{ r[0] }}</td>
+          <td>{{ r[1] }} {{ r[2] }} {{ r[3] }}</td>
+          <td>{{ r[4] }}</td>
+          <td>
+            {% if r[5] %}
+              <span class="no-image">Foto Guardada</span>
+            {% else %}
+              <span class="no-image">Sin foto</span>
+            {% endif %}
+          </td>
+          <td>{{ r[6] }}</td>
+          <td>{{ r[7] }}</td>
+          <td>{{ r[8] if r[8] else '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
