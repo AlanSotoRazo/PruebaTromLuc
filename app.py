@@ -1,20 +1,19 @@
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify, flash, send_file  # type: ignore
-import mysql.connector  # type: ignore
-import cv2  # type: ignore
-import numpy as np  # type: ignore
-import face_recognition   # type: ignore
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify, flash, send_file
+import mysql.connector
+import cv2
+import numpy as np
+import face_recognition
 import base64
 import json
 import os
 from datetime import datetime, date
 from pathlib import Path
-import pandas as pd  # type: ignore
+import pandas as pd
 from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
 
-# Configuración de conexión MySQL con Railway
 db_config = {
     "host": "nozomi.proxy.rlwy.net",
     "user": "root",
@@ -23,20 +22,19 @@ db_config = {
     "port": 16745
 }
 
-conexion = mysql.connector.connect(
-    host=db_config["host"],
-    user=db_config["user"],
-    password=db_config["password"],
-    database=db_config["database"],
-    port=db_config["port"]
-)
-cursor = conexion.cursor()
+def get_db_connection():
+    return mysql.connector.connect(
+        host=db_config["host"],
+        user=db_config["user"],
+        password=db_config["password"],
+        database=db_config["database"],
+        port=db_config["port"]
+    )
 
-# Crear carpetas
+# Crear carpetas si no existen
 Path("fotos/entrada").mkdir(parents=True, exist_ok=True)
 Path("fotos/salida").mkdir(parents=True, exist_ok=True)
 
-# ---------------- LOGIN ----------------
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -49,11 +47,14 @@ def login():
             return render_template('index.html', error="❌ Contraseña incorrecta.")
     return render_template('index.html')
 
-# ---------------- REGISTRO ----------------
 @app.route('/registro')
 def registro():
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute("SELECT id_tipo, tipo_usuario FROM tipo_usuario")
     tipos = cursor.fetchall()
+    cursor.close()
+    conn.close()
     return render_template('registro.html', tipos=tipos)
 
 @app.route('/registrar', methods=['POST'])
@@ -79,18 +80,21 @@ def registrar():
     vector_rostro = json.dumps(rostros[0].tolist())
 
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
         cursor.execute('''
          INSERT INTO emp_activos (vectores_rostro, nombre, apellido_pa, apellido_ma, id_tipo)
          VALUES (%s, %s, %s, %s, %s)
          ''', (vector_rostro, nombre, apellido_paterno, apellido_materno, id_tipo))
-        conexion.commit()
+        conn.commit()
+        cursor.close()
+        conn.close()
         flash("✅ Usuario registrado correctamente", "success")
     except Exception as e:
         flash(f"❌ Error al guardar: {e}", "error")
 
     return redirect(url_for('registro'))
 
-# ---------------- ASISTENCIA  Y PARA EDITAR LATITUD LONGITUD----------------
 @app.route('/asistencia')
 def asistencia_html():
     return render_template('asistencia.html')
@@ -116,6 +120,8 @@ def registrar_asistencia():
 
         vector_nuevo = rostros[0]
 
+        conn = get_db_connection()
+        cursor = conn.cursor()
         cursor.execute("SELECT codigo_emp, vectores_rostro, nombre, apellido_pa FROM emp_activos")
         usuarios = cursor.fetchall()
 
@@ -127,6 +133,8 @@ def registrar_asistencia():
                 matches.append((codigo, nombre, apellido, distancia))
 
         if not matches:
+            cursor.close()
+            conn.close()
             return jsonify({'status': 'fail', 'message': '❌ Rostro no reconocido'})
 
         matches.sort(key=lambda x: x[3])
@@ -139,7 +147,6 @@ def registrar_asistencia():
 
         nombre_archivo = f"{nombre}_{apellido}_{hoy.strftime('%Y%m%d')}.jpg"
 
-        # ---------------- AQUI SE PONEN CONVERTIDAS LA LATITUD Y LONGITUD DE MAZDA y editas el mensaje----------------
         lat_min = 20.5560000 
         lat_max = 20.5575000
         lon_min = -101.2050000
@@ -155,7 +162,9 @@ def registrar_asistencia():
             cv2.imwrite(ruta, img)
 
             cursor.execute("UPDATE asistencia SET hora_salida = %s, ubicacion = %s WHERE id_asistencia = %s", (hora_actual, ubicacion, registro[0]))
-            conexion.commit()
+            conn.commit()
+            cursor.close()
+            conn.close()
             return jsonify({'status': 'ok', 'message': f'🕒 Salida registrada de {nombre}'})
         else:
             carpeta = "fotos/entrada"
@@ -166,16 +175,20 @@ def registrar_asistencia():
                 INSERT INTO asistencia (codigo_emp, vector, fecha, hora_entrada, latitud, longitud, ubicacion)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (codigo_emp, json.dumps(vector_nuevo.tolist()), hoy, hora_actual, latitud, longitud, ubicacion))
-            conexion.commit()
+            conn.commit()
+            cursor.close()
+            conn.close()
             return jsonify({'status': 'ok', 'message': f'🕐 Entrada registrada de {nombre}'})
 
     except Exception as e:
         return jsonify({'status': 'fail', 'message': f'❌ Error: {str(e)}'})
 
-# ---------------- REGISTROS CON FILTRO 7-8-2025----------------
 @app.route('/registros')
 def mostrar_registros():
     fecha = request.args.get('fecha')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
     if fecha:
         cursor.execute("""
@@ -196,20 +209,23 @@ def mostrar_registros():
         """)
 
     registros = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
     return render_template('registros.html', registros=registros)
 
-# ---------------- REGRESAR / DESCARGAR ----------------
 @app.route('/regresar')
 def regresar_registros():
     return render_template('registro.html')
 
-# ---------------- PARTE DE EXCEL, SE DEBE MODIFICAR PARA LOS FILTROS ----------------
 @app.route('/descargar_excel')
 def descargar_excel():
     try:
-        fecha = request.args.get('fecha')  # Obtener la fecha del filtro
+        fecha = request.args.get('fecha')
 
-        # Consulta base
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
         query = '''
             SELECT 
                 e.codigo_emp, 
@@ -225,7 +241,6 @@ def descargar_excel():
         '''
         params = ()
 
-        # Si hay filtro de fecha, agregar condición
         if fecha:
             query += " WHERE a.fecha = %s"
             params = (fecha,)
@@ -233,7 +248,9 @@ def descargar_excel():
         cursor.execute(query, params)
         registros = cursor.fetchall()
 
-        # Crear DataFrame
+        cursor.close()
+        conn.close()
+
         columnas = [
             'Código Empleado', 
             'Nombre', 
@@ -246,7 +263,6 @@ def descargar_excel():
         ]
         df = pd.DataFrame(registros, columns=columnas)
 
-        # Generar archivo Excel en memoria
         output = BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df.to_excel(writer, index=False, sheet_name='Asistencia')
@@ -261,16 +277,11 @@ def descargar_excel():
 
     except Exception as e:
         return f"❌ Error al generar Excel: {str(e)}"
-    
-# ---------------- CERRAR SESIÓN DE TODOS LADOS ----------------
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-
-# ---------------- RUN ----------------
-import os
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
