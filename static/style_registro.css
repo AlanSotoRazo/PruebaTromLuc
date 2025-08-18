@@ -192,3 +192,46 @@ input[type="submit"]:hover {
   /* Agrega solo el borde inferior negro */
   outline: none;
 }
+
+
+
+
+/* ======= ESTILOS RESPONSIVOS ======= */
+@media (max-width: 768px) {
+    .top-nav {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .nav-left img {
+        width: 80px;
+    }
+
+    .nav-right {
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .nav-right button {
+        width: 90%;
+        font-size: 13px;
+        padding: 10px;
+        margin-bottom: 5px; /* ⬅️ Espaciado entre botones en móvil */
+    }
+}
+
+/* ✅ MEDIA QUERY PARA PANTALLAS GRANDES */
+@media (min-width: 1024px) {
+    .nav-right {
+        display: flex;
+        gap: 10px; /* ⬅️ Más espacio horizontal entre botones en desktop */
+    }
+
+    .nav-right button {
+        font-size: 13px;
+        padding: 8px 14px;
+    }
+}
