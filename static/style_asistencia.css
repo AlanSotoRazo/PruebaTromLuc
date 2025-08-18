@@ -117,21 +117,22 @@ video {
 }
 
 
-/* ======= ESTILOS RESPONSIVOS ======= */
 /* PARA TABLET Y MÓVILES */
 @media (max-width: 768px) {
     .Div-Principal {
         background-position: center;
-        /* Asegura que el fondo se vea bien en pantallas pequeñas */
     }
 
     .form-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 70vh;
         width: 90%;
-        /* Aumentamos el tamaño en pantallas más pequeñas */
         max-width: 100%;
         padding: 20px;
         background-color: rgba(0, 0, 0, 0.7);
-        /* Ajustamos el fondo para mayor contraste */
     }
 
     video {
@@ -144,6 +145,7 @@ video {
         max-width: 280px;
     }
 }
+
 
 /* Para Pantallas Grandes (Desktop) */
 @media (min-width: 1024px) {
