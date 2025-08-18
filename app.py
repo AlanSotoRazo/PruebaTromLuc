@@ -47,6 +47,8 @@ def login():
             return render_template('index.html', error="❌ Contraseña incorrecta.")
     return render_template('index.html')
 
+
+# ---------------- REGISTRO Y  ----------------
 @app.route('/registro')
 def registro():
     conn = get_db_connection()
@@ -57,6 +59,8 @@ def registro():
     conn.close()
     return render_template('registro.html', tipos=tipos)
 
+
+# ---------------- REGISTRAR PERSONA  ----------------
 @app.route('/registrar', methods=['POST'])
 def registrar():
     nombre = request.form['nombre']
@@ -99,6 +103,7 @@ def registrar():
 def asistencia_html():
     return render_template('asistencia.html')
 
+# ---------------- ASISTENCIA  Y PARA EDITAR LATITUD LONGITUD----------------
 @app.route('/registrar_asistencia', methods=['POST'])
 def registrar_asistencia():
     try:
@@ -147,14 +152,15 @@ def registrar_asistencia():
 
         nombre_archivo = f"{nombre}_{apellido}_{hoy.strftime('%Y%m%d')}.jpg"
 
-        lat_min = 20.5560000 
-        lat_max = 20.5575000
-        lon_min = -101.2050000
-        lon_max = -101.2020000
+        # ---------------- AQUI SE PONEN CONVERTIDAS LA LATITUD Y LONGITUD DE MAZDA y editas el mensaje----------------
+        lat_min = 20.6123
+        lat_max = 20.6133
+        lon_min = -101.2385
+        lon_max = -101.2375
 
         ubicacion = "Ubicación fuera de la zona de trabajo"
         if lat_min <= float(latitud) <= lat_max and lon_min <= float(longitud) <= lon_max:
-            ubicacion = "Ubicación en la calle acambaro"
+            ubicacion = "Ubicación en Mazda"
 
         if registro:
             carpeta = "fotos/salida"
@@ -183,6 +189,9 @@ def registrar_asistencia():
     except Exception as e:
         return jsonify({'status': 'fail', 'message': f'❌ Error: {str(e)}'})
 
+
+
+# ---------------- REGISTROS CON FILTRO 7-8-2025----------------
 @app.route('/registros')
 def mostrar_registros():
     fecha = request.args.get('fecha')
@@ -214,18 +223,23 @@ def mostrar_registros():
 
     return render_template('registros.html', registros=registros)
 
+# ---------------- REGRESAR / DESCARGAR ----------------
 @app.route('/regresar')
 def regresar_registros():
     return render_template('registro.html')
 
+
+# ---------------- PARTE DE EXCEL, SE DEBE MODIFICAR PARA LOS FILTROS ----------------
 @app.route('/descargar_excel')
 def descargar_excel():
     try:
-        fecha = request.args.get('fecha')
+        fecha = request.args.get('fecha')  # Obtener la fecha del filtro
 
+        # Crear conexión
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # Consulta base
         query = '''
             SELECT 
                 e.codigo_emp, 
@@ -241,6 +255,7 @@ def descargar_excel():
         '''
         params = ()
 
+        # Si hay filtro de fecha, agregar condición
         if fecha:
             query += " WHERE a.fecha = %s"
             params = (fecha,)
@@ -248,21 +263,36 @@ def descargar_excel():
         cursor.execute(query, params)
         registros = cursor.fetchall()
 
+        # Cerrar conexión temporalmente
         cursor.close()
         conn.close()
 
+        # Crear DataFrame
         columnas = [
-            'Código Empleado', 
-            'Nombre', 
-            'Apellido Paterno', 
-            'Apellido Materno', 
-            'Ubicación', 
-            'Fecha', 
-            'Hora Entrada', 
+            'Código Empleado',
+            'Nombre',
+            'Apellido Paterno',
+            'Apellido Materno',
+            'Ubicación',
+            'Fecha',
+            'Hora Entrada',
             'Hora Salida'
         ]
         df = pd.DataFrame(registros, columns=columnas)
 
+        def format_timedelta(td):
+            if pd.isnull(td):
+                return ''
+            total_seconds = int(td.total_seconds())
+            horas = total_seconds // 3600
+            minutos = (total_seconds % 3600) // 60
+            segundos = total_seconds % 60
+            return f"{horas:02d}:{minutos:02d}:{segundos:02d}"
+
+        df['Hora Entrada'] = df['Hora Entrada'].apply(format_timedelta)
+        df['Hora Salida'] = df['Hora Salida'].apply(format_timedelta)
+
+        # Generar Excel en memoria
         output = BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df.to_excel(writer, index=False, sheet_name='Asistencia')
@@ -278,6 +308,9 @@ def descargar_excel():
     except Exception as e:
         return f"❌ Error al generar Excel: {str(e)}"
 
+
+
+    # ---------------- CERRAR SESIÓN DE TODOS LADOS  ----------------
 @app.route('/logout')
 def logout():
     session.clear()
