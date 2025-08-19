@@ -221,6 +221,18 @@ input[type="submit"]:hover {
         padding: 10px;
         margin-bottom: 5px; /* ⬅️ Espaciado entre botones en móvil */
     }
+
+     main {
+    align-items: flex-start; /* que el formulario quede arriba */
+    overflow-y: auto; /* scroll vertical si se necesita */
+    height: calc(100vh - 60px);
+  }
+
+  .form-container {
+    max-height: 90vh; /* para que no ocupe toda la pantalla */
+    overflow-y: auto; /* scroll interno en el formulario */
+    margin-top: 10px; /* separarlo del header */
+  }
 }
 
 /* ✅ MEDIA QUERY PARA PANTALLAS GRANDES */
