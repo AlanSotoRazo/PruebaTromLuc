@@ -31,10 +31,10 @@ def get_db_connection():
         password=db_config["password"],
         database=db_config["database"],
         port=db_config["port"],
-        charset='utf8mb4',  # 👈 Asegura que la conexión use UTF-8
-        use_unicode=True     # 👈 Asegura que se manejen strings como unicode
+        charset='utf8mb4',
+        use_unicode=True
     )
-    conn.set_charset_collation('utf8mb4')  # 👈 Aplica la configuración también a nivel de sesión
+    conn.set_charset_collation('utf8mb4')
     return conn
 
 
