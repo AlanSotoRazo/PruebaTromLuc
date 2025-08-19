@@ -120,36 +120,66 @@
     let stream;
 
     abrirCamaraBtn.addEventListener('click', async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-        video.style.display = 'block';
-        tomarFotoBtn.style.display = 'inline-block';
-        abrirCamaraBtn.style.display = 'none';
-      } catch (err) {
-        alert("No se pudo acceder a la cámara: " + err);
-      }
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            tomarFotoBtn.style.display = 'inline-block';
+            abrirCamaraBtn.style.display = 'none';
+        } catch (err) {
+            alert("No se pudo acceder a la cámara: " + err);
+        }
     });
 
     tomarFotoBtn.addEventListener('click', () => {
-      const contexto = canvas.getContext('2d');
-      const width = 320;
-      const height = 240;
-      canvas.width = width;
-      canvas.height = height;
+        const contexto = canvas.getContext('2d');
+        const width = 320;
+        const height = 240;
+        canvas.width = width;
+        canvas.height = height;
 
-      contexto.drawImage(video, 0, 0, width, height);
-      const dataURL = canvas.toDataURL('image/jpeg', 0.6);
-      fotoInput.value = dataURL;
+        contexto.drawImage(video, 0, 0, width, height);
+        const dataURL = canvas.toDataURL('image/jpeg', 0.6);
 
-      alert("📸 Foto capturada. Ahora envía el formulario.");
+        // Redimensionar la imagen antes de asignarla al input
+        const img = new Image();
+        img.src = dataURL;
+        img.onload = function () {
+            const maxWidth = 800;  // Ancho máximo de la imagen
+            const maxHeight = 600; // Alto máximo de la imagen
 
-      stream.getTracks().forEach(track => track.stop());
-      video.style.display = 'none';
-      tomarFotoBtn.style.display = 'none';
-      abrirCamaraBtn.style.display = 'inline-block';
+            let newWidth = img.width;
+            let newHeight = img.height;
+
+            // Redimensionar la imagen si es más grande que el máximo permitido
+            if (newWidth > maxWidth || newHeight > maxHeight) {
+                const ratio = Math.min(maxWidth / newWidth, maxHeight / newHeight);
+                newWidth = newWidth * ratio;
+                newHeight = newHeight * ratio;
+            }
+
+            // Crear un nuevo canvas para redibujar la imagen redimensionada
+            const resizedCanvas = document.createElement('canvas');
+            const resizedContext = resizedCanvas.getContext('2d');
+            resizedCanvas.width = newWidth;
+            resizedCanvas.height = newHeight;
+
+            resizedContext.drawImage(img, 0, 0, newWidth, newHeight);
+
+            // Obtener la imagen redimensionada en base64
+            const resizedDataURL = resizedCanvas.toDataURL('image/jpeg', 0.6);
+            fotoInput.value = resizedDataURL;
+
+            alert("📸 Foto capturada y redimensionada. Ahora envía el formulario.");
+
+            stream.getTracks().forEach(track => track.stop());
+            video.style.display = 'none';
+            tomarFotoBtn.style.display = 'none';
+            abrirCamaraBtn.style.display = 'inline-block';
+        };
     });
 </script>
+
 
 
 </body>
