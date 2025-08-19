@@ -14,10 +14,6 @@ from io import BytesIO
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
 
-@app.after_request
-def set_charset(response):
-    response.headers['Content-Type'] = 'text/html; charset=utf-8'
-    return response
 
 db_config = {
     "host": "crossover.proxy.rlwy.net",
