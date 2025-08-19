@@ -317,8 +317,10 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    import os
+    port = int(os.environ.get('PORT', 5000))  # Obtener puerto de variable entorno o 5000 por defecto
     app.run(host='0.0.0.0', port=port)
+
 
 
 
