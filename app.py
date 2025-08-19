@@ -30,10 +30,13 @@ def get_db_connection():
         user=db_config["user"],
         password=db_config["password"],
         database=db_config["database"],
-        port=db_config["port"]
+        port=db_config["port"],
+        charset='utf8mb4',  # 👈 Asegura que la conexión use UTF-8
+        use_unicode=True     # 👈 Asegura que se manejen strings como unicode
     )
-    conn.set_charset_collation('utf8mb4')
+    conn.set_charset_collation('utf8mb4')  # 👈 Aplica la configuración también a nivel de sesión
     return conn
+
 
 
 # Crear carpetas si no existen
