@@ -103,6 +103,11 @@ def registrar():
             if len(rostros) > 0:
                 rgb_img = rotated
                 break
+    if len(rostros) == 0:
+        espejada = cv2.flip(rgb_img, 1)
+        rostros = face_recognition.face_encodings(espejada)
+        if len(rostros) > 0:
+            rgb_img = espejada
 
     if len(rostros) == 0:
         flash("❌ No se detectó rostro", "error")
@@ -166,6 +171,12 @@ def registrar_asistencia():
                 if len(rostros) > 0:
                     rgb = rotated
                     break
+        # 🔽 PÉGALO AQUÍ
+        if len(rostros) == 0:
+          espejada = cv2.flip(rgb, 1)
+          rostros = face_recognition.face_encodings(espejada)
+          if len(rostros) > 0:
+                    rgb = espejada
 
         if len(rostros) == 0:
             return jsonify({'status': 'fail', 'message': '❌ No se detectó rostro. Intenta encuadrarte mejor o mejora la luz.'})
