@@ -15,12 +15,13 @@ app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
 
 db_config = {
-    "host": "nozomi.proxy.rlwy.net",
+    "host": "crossover.proxy.rlwy.net",
     "user": "root",
-    "password": "yaOlXlhNiURwnOZzlFKoUkbODGwVEaWS",
+    "password": "ctXmVXKaEgqbrgJcPgxmZFOnjSpAIOSs",
     "database": "railway",
-    "port": 16745
+    "port": 47507
 }
+
 
 def get_db_connection():
     return mysql.connector.connect(
