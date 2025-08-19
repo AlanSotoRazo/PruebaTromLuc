@@ -61,7 +61,7 @@ header {
     cursor: pointer;
     border-radius: 5px;
     transition: background-color 0.3s ease;
-    margin: 10px;
+    margin: 10px 10px 10px 0;
 }
 
 #abrirCamaraBtn:hover,
@@ -81,8 +81,7 @@ header {
     background-size: cover;
     background-position: left 10%;
     background-repeat: no-repeat;
-
-}
+ }
 
 .form-container {
     padding: 20px;
@@ -94,6 +93,9 @@ header {
     /* Limita el ancho máximo */
     height: auto;
     background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .video-container {
@@ -103,7 +105,7 @@ header {
     width: 100%;
     max-width: 320px;
     height: auto;
-    margin: 0 auto;
+    margin: 0 auto 15px auto; /* margen abajo para separar del mensaje */
 }
 
 video {
@@ -115,6 +117,30 @@ video {
     box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.4);
     transition: all 0.3s ease;
 }
+
+/* Preview de foto tomada */
+#previewImg {
+    margin-top: 15px;
+    max-width: 320px;
+    border-radius: 10px;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+/* Contenedor botones en línea */
+.form-container > button {
+    display: inline-block;
+}
+
+/* Mensaje resultado justo debajo y centrado */
+#resultado {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    min-height: 24px;
+    color: green; /* cambiar según JS */
+}
+
 
 
 /* PARA TABLET Y MÓVILES */
