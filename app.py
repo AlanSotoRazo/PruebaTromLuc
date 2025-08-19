@@ -32,9 +32,9 @@ def get_db_connection():
         database=db_config["database"],
         port=db_config["port"]
     )
-    cursor = conn.cursor()
-    cursor.execute("SET NAMES utf8mb4;")  # ✅ Esto soluciona los signos de interrogación
+    conn.set_charset_collation('utf8mb4')
     return conn
+
 
 # Crear carpetas si no existen
 Path("fotos/entrada").mkdir(parents=True, exist_ok=True)
