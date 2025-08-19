@@ -25,14 +25,16 @@ db_config = {
 
 
 def get_db_connection():
-    return mysql.connector.connect(
+    conn = mysql.connector.connect(
         host=db_config["host"],
         user=db_config["user"],
         password=db_config["password"],
         database=db_config["database"],
-        port=db_config["port"],
-        charset='utf8mb4'
+        port=db_config["port"]
     )
+    cursor = conn.cursor()
+    cursor.execute("SET NAMES utf8mb4;")  # ✅ Esto soluciona los signos de interrogación
+    return conn
 
 # Crear carpetas si no existen
 Path("fotos/entrada").mkdir(parents=True, exist_ok=True)
