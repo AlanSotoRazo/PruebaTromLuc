@@ -111,7 +111,8 @@
 
 
 <script>
-    // El código para abrir la cámara y tomar la foto se mantiene igual que antes
+    // El código para la apertura de la cámara y la captura de la foto se mantiene, pero ahora incluiremos más depuración y control de errores.
+
     const abrirCamaraBtn = document.getElementById('abrirCamaraBtn');
     const video = document.getElementById('video');
     const tomarFotoBtn = document.getElementById('tomarFoto');
@@ -127,7 +128,7 @@
             tomarFotoBtn.style.display = 'inline-block';
             abrirCamaraBtn.style.display = 'none';
         } catch (err) {
-            alert("No se pudo acceder a la cámara: " + err);
+            alert("No se pudo acceder a la cámara: " + err.message);
         }
     });
 
@@ -141,10 +142,12 @@
         contexto.drawImage(video, 0, 0, width, height);
         const dataURL = canvas.toDataURL('image/jpeg', 0.6);
 
-        // Redimensionar la imagen antes de asignarla al input
+        // Verificamos las dimensiones de la imagen antes de enviarla
         const img = new Image();
         img.src = dataURL;
         img.onload = function () {
+            console.log("Tamaño de la imagen antes de redimensionar: ", img.width, img.height);
+
             const maxWidth = 800;  // Ancho máximo de la imagen
             const maxHeight = 600; // Alto máximo de la imagen
 

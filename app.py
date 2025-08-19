@@ -14,7 +14,6 @@ from io import BytesIO
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
 
-
 db_config = {
     "host": "crossover.proxy.rlwy.net",
     "user": "root",
@@ -22,7 +21,6 @@ db_config = {
     "database": "railway",
     "port": 47507
 }
-
 
 def get_db_connection():
     conn = mysql.connector.connect(
@@ -36,8 +34,6 @@ def get_db_connection():
     )
     conn.set_charset_collation('utf8mb4')
     return conn
-
-
 
 # Crear carpetas si no existen
 Path("fotos/entrada").mkdir(parents=True, exist_ok=True)
@@ -55,7 +51,6 @@ def login():
             return render_template('index.html', error="❌ Contraseña incorrecta.")
     return render_template('index.html')
 
-
 # ---------------- REGISTRO Y  ----------------
 @app.route('/registro')
 def registro():
@@ -67,7 +62,6 @@ def registro():
     conn.close()
     return render_template('registro.html', tipos=tipos)
 
-
 # ---------------- REGISTRAR PERSONA  ----------------
 @app.route('/registrar', methods=['POST'])
 def registrar():
@@ -77,13 +71,23 @@ def registrar():
     id_tipo = request.form['tipo_usuario']
     foto_base64 = request.form['foto']
 
-    if ',' in foto_base64:
-        foto_base64 = foto_base64.split(',')[1]
-    imagen_bytes = base64.b64decode(foto_base64)
-    nparr = np.frombuffer(imagen_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    # Verificación si no se recibió una foto
+    if not foto_base64:
+        flash("❌ No se recibió ninguna foto.", "error")
+        return redirect(url_for('registro'))
+    
+    # Intento de decodificación de la imagen en base64
+    try:
+        imagen_bytes = base64.b64decode(foto_base64)
+        nparr = np.frombuffer(imagen_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    except Exception as e:
+        flash(f"❌ Error al procesar la imagen: {e}", "error")
+        return redirect(url_for('registro'))
+
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
+    # Detectar rostros en la imagen
     rostros = face_recognition.face_encodings(rgb_img)
     if len(rostros) == 0:
         flash("❌ No se detectó rostro.", "error")
@@ -197,8 +201,6 @@ def registrar_asistencia():
     except Exception as e:
         return jsonify({'status': 'fail', 'message': f'❌ Error: {str(e)}'})
 
-
-
 # ---------------- REGISTROS CON FILTRO 7-8-2025----------------
 @app.route('/registros')
 def mostrar_registros():
@@ -235,7 +237,6 @@ def mostrar_registros():
 @app.route('/regresar')
 def regresar_registros():
     return render_template('registro.html')
-
 
 # ---------------- PARTE DE EXCEL, SE DEBE MODIFICAR PARA LOS FILTROS ----------------
 @app.route('/descargar_excel')
@@ -316,19 +317,11 @@ def descargar_excel():
     except Exception as e:
         return f"❌ Error al generar Excel: {str(e)}"
 
-
-
-    # ---------------- CERRAR SESIÓN DE TODOS LADOS  ----------------
+# ---------------- CERRAR SESIÓN DE TODOS LADOS  ----------------
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    pass  # o simplemente comenta toda esta sección
-    # app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-
-
-
-
-
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
