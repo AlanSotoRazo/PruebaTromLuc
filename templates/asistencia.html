@@ -2,11 +2,11 @@
 <html lang="es">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro de Asistencia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style_asistencia.css') }}" />
 </head>
 
@@ -14,95 +14,95 @@
   <header>
     <nav class="top-nav">
       <div class="nav-left">
-        <img src="{{ url_for('static', filename='imgs/logo.png') }}" alt="Logo">
+        <img src="{{ url_for('static', filename='imgs/logo.png') }}" alt="Logo" />
       </div>
       <div class="nav-right">
         <button onclick="window.location.href='/logout';">Cerrar sesión</button>
       </div>
     </nav>
   </header>
-<!-- CONTENEDOR PRINCIPAL -->
-<div class="Div-Principal">
 
-<!-- aqui esta dentro el contenedor de la foto para poder editarla correctamente -->
-<div class="form-container">
-  <div class="video-container">
-<video id="video" width="320" height="240" autoplay></video>
-  <canvas id="canvas" style="display: none;"></canvas>
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div class="Div-Principal">
+    <!-- Contenedor para la cámara y la foto -->
+    <div class="form-container">
+      <div class="video-container">
+        <video id="video" width="320" height="240" autoplay></video>
+        <canvas id="canvas" style="display: none;"></canvas>
+      </div>
+      <button id="abrirCamaraBtn">Abrir Cámara</button>
+      <button id="tomarFotoBtn" style="display:none;">Tomar Foto</button>
+      <button id="cerrarCamaraBtn" style="display:none;">Cerrar Cámara</button>
+
+      <!-- Input oculto para guardar la foto en base64 (CORREGIDO: estaba faltando en tu HTML) -->
+      <input type="hidden" id="fotoInput" name="foto" />
+
+      <p id="resultado"></p>
+
+      <!-- Inputs ocultos para ubicación -->
+      <input type="hidden" id="latitud" name="latitud" />
+      <input type="hidden" id="longitud" name="longitud" />
+    </div>
   </div>
-  <button id="abrirCamaraBtn">Abrir Cámara</button>
-    <button id="tomarFotoBtn" style="display:none;">Tomar Foto</button>
-    <button id="cerrarCamaraBtn" style="display:none;">Cerrar Cámara</button>
-</div>
-  
 
-  <p id="resultado"></p>
+  <script>
+    const abrirCamaraBtn = document.getElementById('abrirCamaraBtn');
+    const video = document.getElementById('video');
+    // CORREGIDO: El id aquí debe coincidir con el del botón en HTML (tomarFotoBtn)
+    const tomarFotoBtn = document.getElementById('tomarFotoBtn');
+    const canvas = document.getElementById('canvas');
+    // Input oculto para la foto
+    const fotoInput = document.getElementById('fotoInput');
+    let stream;
 
-  <!-- Inputs ocultos para ubicación -->
-   <!-- Escribe aquí tu comentario -->
+    abrirCamaraBtn.addEventListener('click', async function () {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" } // Forzar cámara frontal
+        });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        tomarFotoBtn.style.display = 'inline-block';
+        abrirCamaraBtn.style.display = 'none';
+      } catch (err) {
+        alert("No se pudo acceder a la cámara: " + err.message);
+      }
+    });
 
-  <input type="hidden" id="latitud" name="latitud">
-  <input type="hidden" id="longitud" name="longitud">
-</div>
+    tomarFotoBtn.addEventListener('click', () => {
+      const ctx = canvas.getContext('2d');
+      const width = 320;
+      const height = 240;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(video, 0, 0, width, height);
 
+      const dataURL = canvas.toDataURL('image/jpeg', 0.6);
+      // Guardar la foto en el input oculto para enviarla luego
+      fotoInput.value = dataURL;
 
+      // Mostrar previsualización (opcional)
+      const preview = document.getElementById('previewImg');
+      if (preview) {
+        preview.src = dataURL;
+      } else {
+        const imgPreview = document.createElement('img');
+        imgPreview.id = 'previewImg';
+        imgPreview.src = dataURL;
+        imgPreview.style.marginTop = '10px';
+        imgPreview.style.maxWidth = '100%';
+        document.querySelector('.form-container').appendChild(imgPreview);
+      }
 
- 
+      alert("📸 Foto capturada. Ahora envía el formulario.");
+
+      // Detener cámara
+      stream.getTracks().forEach(track => track.stop());
+      video.style.display = 'none';
+      tomarFotoBtn.style.display = 'none';
+      abrirCamaraBtn.style.display = 'inline-block';
+    });
+  </script>
 </body>
-<script>
-  const abrirCamaraBtn = document.getElementById('abrirCamaraBtn');
-  const video = document.getElementById('video');
-  const tomarFotoBtn = document.getElementById('tomarFoto');
-  const canvas = document.getElementById('canvas');
-  const fotoInput = document.getElementById('fotoInput');
-  let stream;
-
-  abrirCamaraBtn.addEventListener('click', async function () {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" } // 🔄 Forzar cámara frontal
-      });
-      video.srcObject = stream;
-      video.style.display = 'block';
-      tomarFotoBtn.style.display = 'inline-block';
-      abrirCamaraBtn.style.display = 'none';
-    } catch (err) {
-      alert("No se pudo acceder a la cámara: " + err.message);
-    }
-  });
-
-  tomarFotoBtn.addEventListener('click', () => {
-    const ctx = canvas.getContext('2d');
-    const width = 320;
-    const height = 240;
-    canvas.width = width;
-    canvas.height = height;
-    ctx.drawImage(video, 0, 0, width, height);
-
-    const dataURL = canvas.toDataURL('image/jpeg', 0.6);
-    fotoInput.value = dataURL;
-
-    // 👁️ Mostrar previsualización (opcional pero útil para pruebas)
-    const preview = document.getElementById('previewImg');
-    if (preview) {
-      preview.src = dataURL;
-    } else {
-      const imgPreview = document.createElement('img');
-      imgPreview.id = 'previewImg';
-      imgPreview.src = dataURL;
-      imgPreview.style.marginTop = '10px';
-      imgPreview.style.maxWidth = '100%';
-      document.querySelector('.form-container').appendChild(imgPreview);
-    }
-
-    alert("📸 Foto capturada. Ahora envía el formulario.");
-
-    // Detener cámara
-    stream.getTracks().forEach(track => track.stop());
-    video.style.display = 'none';
-    tomarFotoBtn.style.display = 'none';
-    abrirCamaraBtn.style.display = 'inline-block';
-  });
-</script>
 
 </html>
