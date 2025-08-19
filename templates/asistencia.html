@@ -22,9 +22,7 @@
     </nav>
   </header>
 
-  <!-- CONTENEDOR PRINCIPAL -->
   <div class="Div-Principal">
-    <!-- Contenedor para la cámara y la foto -->
     <div class="form-container">
       <div class="video-container">
         <video id="video" width="320" height="240" autoplay></video>
@@ -33,40 +31,54 @@
       <button id="abrirCamaraBtn">Abrir Cámara</button>
       <button id="tomarFotoBtn" style="display:none;">Tomar Foto</button>
       <button id="cerrarCamaraBtn" style="display:none;">Cerrar Cámara</button>
-
-      <!-- Input oculto para guardar la foto en base64 (CORREGIDO: estaba faltando en tu HTML) -->
-      <input type="hidden" id="fotoInput" name="foto" />
-
-      <p id="resultado"></p>
-
-      <!-- Inputs ocultos para ubicación -->
-      <input type="hidden" id="latitud" name="latitud" />
-      <input type="hidden" id="longitud" name="longitud" />
     </div>
+
+    <p id="resultado"></p>
+
+    <!-- Inputs ocultos para ubicación y foto -->
+    <input type="hidden" id="latitud" name="latitud" />
+    <input type="hidden" id="longitud" name="longitud" />
+    <input type="hidden" id="fotoInput" name="foto" />
   </div>
 
   <script>
     const abrirCamaraBtn = document.getElementById('abrirCamaraBtn');
-    const video = document.getElementById('video');
-    // CORREGIDO: El id aquí debe coincidir con el del botón en HTML (tomarFotoBtn)
     const tomarFotoBtn = document.getElementById('tomarFotoBtn');
+    const cerrarCamaraBtn = document.getElementById('cerrarCamaraBtn');
+    const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    // Input oculto para la foto
     const fotoInput = document.getElementById('fotoInput');
+    const resultado = document.getElementById('resultado');
+    const latInput = document.getElementById('latitud');
+    const lonInput = document.getElementById('longitud');
+
     let stream;
 
-    abrirCamaraBtn.addEventListener('click', async function () {
+    abrirCamaraBtn.addEventListener('click', async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" } // Forzar cámara frontal
+          video: { facingMode: "user" }, // Cámara frontal
         });
         video.srcObject = stream;
         video.style.display = 'block';
         tomarFotoBtn.style.display = 'inline-block';
+        cerrarCamaraBtn.style.display = 'inline-block';
         abrirCamaraBtn.style.display = 'none';
+        resultado.textContent = '';
       } catch (err) {
         alert("No se pudo acceder a la cámara: " + err.message);
       }
+    });
+
+    cerrarCamaraBtn.addEventListener('click', () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      video.style.display = 'none';
+      tomarFotoBtn.style.display = 'none';
+      cerrarCamaraBtn.style.display = 'none';
+      abrirCamaraBtn.style.display = 'inline-block';
+      resultado.textContent = '';
     });
 
     tomarFotoBtn.addEventListener('click', () => {
@@ -77,31 +89,82 @@
       canvas.height = height;
       ctx.drawImage(video, 0, 0, width, height);
 
+      // Obtener la imagen en base64
       const dataURL = canvas.toDataURL('image/jpeg', 0.6);
-      // Guardar la foto en el input oculto para enviarla luego
       fotoInput.value = dataURL;
 
       // Mostrar previsualización (opcional)
-      const preview = document.getElementById('previewImg');
-      if (preview) {
-        preview.src = dataURL;
-      } else {
-        const imgPreview = document.createElement('img');
-        imgPreview.id = 'previewImg';
-        imgPreview.src = dataURL;
-        imgPreview.style.marginTop = '10px';
-        imgPreview.style.maxWidth = '100%';
-        document.querySelector('.form-container').appendChild(imgPreview);
+      let preview = document.getElementById('previewImg');
+      if (!preview) {
+        preview = document.createElement('img');
+        preview.id = 'previewImg';
+        preview.style.marginTop = '10px';
+        preview.style.maxWidth = '100%';
+        document.querySelector('.form-container').appendChild(preview);
       }
+      preview.src = dataURL;
 
-      alert("📸 Foto capturada. Ahora envía el formulario.");
+      alert("📸 Foto capturada. Obteniendo ubicación y enviando...");
 
       // Detener cámara
-      stream.getTracks().forEach(track => track.stop());
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
       video.style.display = 'none';
       tomarFotoBtn.style.display = 'none';
+      cerrarCamaraBtn.style.display = 'none';
       abrirCamaraBtn.style.display = 'inline-block';
+
+      // Obtener ubicación
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          latInput.value = position.coords.latitude;
+          lonInput.value = position.coords.longitude;
+          enviarAsistencia();
+        }, error => {
+          alert("No se pudo obtener la ubicación: " + error.message);
+          // Igual enviamos sin ubicación
+          latInput.value = '';
+          lonInput.value = '';
+          enviarAsistencia();
+        });
+      } else {
+        alert("El navegador no soporta geolocalización");
+        latInput.value = '';
+        lonInput.value = '';
+        enviarAsistencia();
+      }
     });
+
+    function enviarAsistencia() {
+      const data = {
+        foto: fotoInput.value,
+        latitud: latInput.value,
+        longitud: lonInput.value,
+      };
+
+      fetch('/registrar_asistencia', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'ok') {
+            resultado.textContent = data.message;
+            resultado.style.color = 'green';
+          } else {
+            resultado.textContent = data.message;
+            resultado.style.color = 'red';
+          }
+        })
+        .catch(error => {
+          resultado.textContent = '❌ Error al enviar la asistencia: ' + error.message;
+          resultado.style.color = 'red';
+        });
+    }
   </script>
 </body>
 
