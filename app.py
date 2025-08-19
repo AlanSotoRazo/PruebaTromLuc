@@ -90,10 +90,25 @@ def registrar():
 
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
+    # 👉 VA AQUÍ ALAN 👇 — intentamos rotaciones si no detecta rostro
     rostros = face_recognition.face_encodings(rgb_img)
     if len(rostros) == 0:
-        flash("❌ No se detectó rostro.", "error")
+        for angle in [90, 180, 270]:
+            rotated = cv2.rotate(rgb_img, {
+                90: cv2.ROTATE_90_CLOCKWISE,
+                180: cv2.ROTATE_180,
+                270: cv2.ROTATE_90_COUNTERCLOCKWISE
+            }[angle])
+            rostros = face_recognition.face_encodings(rotated)
+            if len(rostros) > 0:
+                rgb_img = rotated
+                break
+
+    if len(rostros) == 0:
+        flash("❌ No se detectó rostro", "error")
         return redirect(url_for('registro'))
+    # 👉 FIN DE CAMBIO ALAN 👆
+
 
     vector_rostro = json.dumps(rostros[0].tolist())
 
@@ -137,10 +152,25 @@ def registrar_asistencia():
         img = cv2.resize(img, (800, 600))
 
         rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        # 👉 INTENTAMOS ROTAR SI NO DETECTA ROSTRO 👇
         rostros = face_recognition.face_encodings(rgb)
+        if len(rostros) == 0:
+            for angle in [90, 180, 270]:
+                rotated = cv2.rotate(rgb, {
+                    90: cv2.ROTATE_90_CLOCKWISE,
+                    180: cv2.ROTATE_180,
+                    270: cv2.ROTATE_90_COUNTERCLOCKWISE
+                }[angle])
+                rostros = face_recognition.face_encodings(rotated)
+                if len(rostros) > 0:
+                    rgb = rotated
+                    break
 
         if len(rostros) == 0:
-            return jsonify({'status': 'fail', 'message': '❌ No se detectó rostro'})
+            return jsonify({'status': 'fail', 'message': '❌ No se detectó rostro. Intenta encuadrarte mejor o mejora la luz.'})
+        # 👉 FIN DE CAMBIO 👆
+
 
         vector_nuevo = rostros[0]
 
