@@ -9,11 +9,12 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style_registro.css') }}" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script> <!-- 📌 Soporte EXIF -->
 </head>
 
 
 <body>
-  <!-- HEADER TromLuc -->
+  <!-- HEADER -->
   <header>
     <nav class="top-nav">
       <div class="nav-left">
@@ -28,91 +29,79 @@
       </div>
     </nav>
   </header>
-  <!-- Contenedor donde va el formulario de registro principal -->
+
+  <!-- CONTENEDOR PRINCIPAL -->
   <main>
     <div class="form-container">
       <h2 style="text-align:center; margin-bottom: 20px;">Registro de Asistencia TromLuc</h2>
 
       <form id="formRegistro" method="POST" action="/registrar" enctype="multipart/form-data">
-    <!-- Los campos de tu formulario -->
-    <label for="nombre">Nombre(s):</label>
-    <input type="text" id="nombre" name="nombre" required autocomplete="off" />
-    <label for="apellido_paterno">Apellido paterno:</label>
-    <input type="text" id="apellido_paterno" name="apellido_paterno" required autocomplete="off" />
-    <label for="apellido_materno">Apellido materno:</label>
-    <input type="text" id="apellido_materno" name="apellido_materno" required autocomplete="off" />
-    <div class="div-labelusuario">
-        <label for="tipo_usuario">Departamento</label>
-        <select id="tipo_usuario" name="tipo_usuario" required>
+        <label for="nombre">Nombre(s):</label>
+        <input type="text" id="nombre" name="nombre" required autocomplete="off" />
+        <label for="apellido_paterno">Apellido paterno:</label>
+        <input type="text" id="apellido_paterno" name="apellido_paterno" required autocomplete="off" />
+        <label for="apellido_materno">Apellido materno:</label>
+        <input type="text" id="apellido_materno" name="apellido_materno" required autocomplete="off" />
+        <div class="div-labelusuario">
+          <label for="tipo_usuario">Departamento</label>
+          <select id="tipo_usuario" name="tipo_usuario" required>
             <option value="" disabled selected>Selecciona un tipo</option>
             {% for id_tipo, tipo in tipos %}
-            <option value="{{ id_tipo }}">{{ tipo }}</option>
+              <option value="{{ id_tipo }}">{{ tipo }}</option>
             {% endfor %}
-        </select>
+          </select>
+        </div>
+
+        <!-- CÁMARA -->
+        <label>Foto:</label>
+        <button type="button" id="abrirCamaraBtn">Abrir cámara</button>
+        <video id="video" autoplay playsinline style="display:none;"></video>
+        <button type="button" id="tomarFoto" style="display:none; margin-top:10px;">Tomar Foto</button>
+        <canvas id="canvas" style="display:none;"></canvas>
+
+        <input type="hidden" name="foto" id="fotoInput" />
+        <input type="submit" value="Registrar" />
+      </form>
+
+      <!-- MODAL -->
+      <div id="respuestaModal" style="display:none; background-color: rgba(0, 0, 0, 0.5); position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background-color: white; padding: 20px; border-radius: 10px; width: 80%; max-width: 500px; text-align: center;">
+          <h3 id="respuestaMensaje"></h3>
+          <button onclick="cerrarModal()">Cerrar</button>
+        </div>
+      </div>
+
+      <div id="mensajeFlash" style="display:none;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {{ messages[0][1] }}
+          {% endif %}
+        {% endwith %}
+      </div>
     </div>
+  </main>
 
- <!--AQUI VA LA CAMARA PARA EL REGISTRO-->
-    <label>Foto:</label>
-    <button type="button" id="abrirCamaraBtn">Abrir cámara</button>
-    <video id="video" autoplay playsinline style="display:none;"></video>
-    <button type="button" id="tomarFoto" style="display:none; margin-top:10px;">Tomar Foto</button>
-    <canvas id="canvas" style="display:none;"></canvas>
-
-    <input type="hidden" name="foto" id="fotoInput" />
-    <input type="submit" value="Registrar" />
-</form>
-
-<!-- Modal de Respuesta -->
-
-
-<!-- Modal de Respuesta (Por defecto está oculto PERO se debe editar el diseño) -->
-<div id="respuestaModal" style="display:none; background-color: rgba(0, 0, 0, 0.5); position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background-color: white; padding: 20px; border-radius: 10px; width: 80%; max-width: 500px; text-align: center;">
-        <h3 id="respuestaMensaje"></h3>
-        <button onclick="cerrarModal()">Cerrar</button>
-    </div>
-</div>
-
-<!-- Coloca aquí los mensajes  Flask, pero ocultos -->
-<div id="mensajeFlash" style="display:none;">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {{ messages[0][1] }} <!-- El mensaje que se pasará al JavaScript -->
-        {% endif %}
-    {% endwith %}
-</div>
-
-
-<script>
-    // SCRIPT PARA LA MUESTRA DEL MODAL
+  <!-- SCRIPT MODAL -->
+  <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const mensajeFlash = document.getElementById('mensajeFlash').innerText.trim();
-        
-        
-        if (mensajeFlash) {
-            // Mostrar el modal
-            document.getElementById('respuestaModal').style.display = 'flex';
-            document.getElementById('respuestaMensaje').innerText = mensajeFlash;
-
-            // Cerrar el modal automáticamente después de 10 segundos aqui podemos editar 
-            setTimeout(() => {
-                document.getElementById('respuestaModal').style.display = 'none';
-            }, 10000);  // 10000 ms = 10 segundos 
-        }
+      const mensajeFlash = document.getElementById('mensajeFlash').innerText.trim();
+      if (mensajeFlash) {
+        document.getElementById('respuestaModal').style.display = 'flex';
+        document.getElementById('respuestaMensaje').innerText = mensajeFlash;
+        setTimeout(() => {
+          document.getElementById('respuestaModal').style.display = 'none';
+        }, 10000);
+      }
     });
 
-    // Función para cerrar el modal manualmente PODEMOS quitarlo pero se ve mejor cerrandolo (opinion mia xd)
+
     function cerrarModal() {
-        document.getElementById('respuestaModal').style.display = 'none';
+      document.getElementById('respuestaModal').style.display = 'none';
     }
-</script>
+  </script>
 
-
-
-
-<script>
-    // El código para la apertura de la cámara y la captura de la foto se mantiene, pero ahora incluiremos más depuración y control de errores.
-
+  <!-- SCRIPT CÁMARA CON CORRECCIÓN EXIF -->
+  <script>
     const abrirCamaraBtn = document.getElementById('abrirCamaraBtn');
     const video = document.getElementById('video');
     const tomarFotoBtn = document.getElementById('tomarFoto');
@@ -121,70 +110,93 @@
     let stream;
 
     abrirCamaraBtn.addEventListener('click', async () => {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            video.srcObject = stream;
-            video.style.display = 'block';
-            tomarFotoBtn.style.display = 'inline-block';
-            abrirCamaraBtn.style.display = 'none';
-        } catch (err) {
-            alert("No se pudo acceder a la cámara: " + err.message);
-        }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        tomarFotoBtn.style.display = 'inline-block';
+        abrirCamaraBtn.style.display = 'none';
+      } catch (err) {
+        alert("No se pudo acceder a la cámara: " + err.message);
+      }
     });
 
     tomarFotoBtn.addEventListener('click', () => {
-        const contexto = canvas.getContext('2d');
-        const width = 320;
-        const height = 240;
-        canvas.width = width;
-        canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      const width = 320;
+      const height = 240;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(video, 0, 0, width, height);
+      const dataURL = canvas.toDataURL('image/jpeg', 0.6);
 
-        contexto.drawImage(video, 0, 0, width, height);
-        const dataURL = canvas.toDataURL('image/jpeg', 0.6);
+      const img = new Image();
+      img.src = dataURL;
+      img.onload = function () {
+        fetch(dataURL)
+          .then(res => res.blob())
+          .then(blob => {
+            EXIF.getData(blob, function () {
+              const orientation = EXIF.getTag(this, 'Orientation') || 1;
 
-        // Verificamos las dimensiones de la imagen antes de enviarla
-        const img = new Image();
-        img.src = dataURL;
-        img.onload = function () {
-            console.log("Tamaño de la imagen antes de redimensionar: ", img.width, img.height);
+              const originalCanvas = document.createElement('canvas');
+              const ctx = originalCanvas.getContext('2d');
 
-            const maxWidth = 800;  // Ancho máximo de la imagen
-            const maxHeight = 600; // Alto máximo de la imagen
+              let iw = img.width;
+              let ih = img.height;
 
-            let newWidth = img.width;
-            let newHeight = img.height;
+              if (orientation > 4 && orientation < 9) {
+                originalCanvas.width = ih;
+                originalCanvas.height = iw;
+              } else {
+                originalCanvas.width = iw;
+                originalCanvas.height = ih;
+              }
 
-            // Redimensionar la imagen si es más grande que el máximo permitido
-            if (newWidth > maxWidth || newHeight > maxHeight) {
-                const ratio = Math.min(maxWidth / newWidth, maxHeight / newHeight);
-                newWidth = newWidth * ratio;
-                newHeight = newHeight * ratio;
-            }
+              switch (orientation) {
+                case 2: ctx.transform(-1, 0, 0, 1, iw, 0); break;
+                case 3: ctx.transform(-1, 0, 0, -1, iw, ih); break;
+                case 4: ctx.transform(1, 0, 0, -1, 0, ih); break;
+                case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+                case 6: ctx.transform(0, 1, -1, 0, ih, 0); break;
+                case 7: ctx.transform(0, -1, -1, 0, ih, iw); break;
+                case 8: ctx.transform(0, -1, 1, 0, 0, iw); break;
+                default: ctx.transform(1, 0, 0, 1, 0, 0); break;
+              }
 
-            // Crear un nuevo canvas para redibujar la imagen redimensionada
-            const resizedCanvas = document.createElement('canvas');
-            const resizedContext = resizedCanvas.getContext('2d');
-            resizedCanvas.width = newWidth;
-            resizedCanvas.height = newHeight;
+              ctx.drawImage(img, 0, 0);
 
-            resizedContext.drawImage(img, 0, 0, newWidth, newHeight);
+              // Redimensionar a 800x600
+              let newW = originalCanvas.width;
+              let newH = originalCanvas.height;
+              const maxW = 800;
+              const maxH = 600;
 
-            // Obtener la imagen redimensionada en base64
-            const resizedDataURL = resizedCanvas.toDataURL('image/jpeg', 0.6);
-            fotoInput.value = resizedDataURL;
+              if (newW > maxW || newH > maxH) {
+                const ratio = Math.min(maxW / newW, maxH / newH);
+                newW *= ratio;
+                newH *= ratio;
+              }
 
-            alert("📸 Foto capturada y redimensionada. Ahora envía el formulario.");
+              const resizedCanvas = document.createElement('canvas');
+              resizedCanvas.width = newW;
+              resizedCanvas.height = newH;
+              resizedCanvas.getContext('2d').drawImage(originalCanvas, 0, 0, newW, newH);
 
-            stream.getTracks().forEach(track => track.stop());
-            video.style.display = 'none';
-            tomarFotoBtn.style.display = 'none';
-            abrirCamaraBtn.style.display = 'inline-block';
-        };
+              const resizedDataURL = resizedCanvas.toDataURL('image/jpeg', 0.6);
+              fotoInput.value = resizedDataURL;
+
+              alert("📸 Foto corregida y capturada. Ahora envía el formulario.");
+
+              stream.getTracks().forEach(track => track.stop());
+              video.style.display = 'none';
+              tomarFotoBtn.style.display = 'none';
+              abrirCamaraBtn.style.display = 'inline-block';
+            });
+          });
+      };
     });
-</script>
-
-
-
+  </script>
 </body>
 
 </html>
