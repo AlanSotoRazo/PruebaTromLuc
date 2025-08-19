@@ -233,6 +233,19 @@ input[type="submit"]:hover {
     overflow-y: auto; /* scroll interno en el formulario */
     margin-top: 10px; /* separarlo del header */
   }
+
+  /* Asegurarse de que los botones siempre estén por encima de la cámara */
+  #video {
+    z-index: -1; /* La cámara detrás de los botones */
+  }
+
+  #abrirCamaraBtn, #tomarFoto {
+    z-index: 10; /* Los botones por encima */
+  }
+
+  #canvas {
+    z-index: 1; /* En caso de que se muestre el canvas, que quede por debajo de los botones */
+  }
 }
 
 /* ✅ MEDIA QUERY PARA PANTALLAS GRANDES */
