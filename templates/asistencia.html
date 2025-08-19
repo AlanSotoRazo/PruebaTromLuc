@@ -49,121 +49,60 @@
 
  
 </body>
+<script>
+  const abrirCamaraBtn = document.getElementById('abrirCamaraBtn');
+  const video = document.getElementById('video');
+  const tomarFotoBtn = document.getElementById('tomarFoto');
+  const canvas = document.getElementById('canvas');
+  const fotoInput = document.getElementById('fotoInput');
+  let stream;
 
-<!-- SCRIPT (DEBEMOS SEPARARLOS) PARA UBICACION Y MANDA LA LATITUD Y LONGITUD -->
- <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const abrirCamaraBtn = document.getElementById('abrirCamaraBtn');
-    const tomarFotoBtn = document.getElementById('tomarFotoBtn');
-    const cerrarCamaraBtn = document.getElementById('cerrarCamaraBtn');
-    const resultado = document.getElementById('resultado');
-
-    let stream;
-
-    // Obtener ubicación al cargar
- // Función para obtener ubicación
-    function obtenerUbicacion() {
-      return new Promise((resolve, reject) => {
-        if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(function (position) {
-            // Asignar las coordenadas de latitud y longitud
-            document.getElementById("latitud").value = position.coords.latitude;
-            document.getElementById("longitud").value = position.coords.longitude;
-            resolve();  // Resolver la promesa si la ubicación se obtiene correctamente
-          }, function (error) {
-            alert("Error obteniendo la ubicación: " + error.message);
-            document.getElementById("latitud").value = '';
-            document.getElementById("longitud").value = '';
-            reject(error);  // Rechazar la promesa si ocurre un error
-          });
-        } else {
-          alert("Este navegador no soporta geolocalización.");
-          reject("Geolocalización no soportada");
-        }
+  abrirCamaraBtn.addEventListener('click', async function () {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" } // 🔄 Forzar cámara frontal
       });
+      video.srcObject = stream;
+      video.style.display = 'block';
+      tomarFotoBtn.style.display = 'inline-block';
+      abrirCamaraBtn.style.display = 'none';
+    } catch (err) {
+      alert("No se pudo acceder a la cámara: " + err.message);
+    }
+  });
+
+  tomarFotoBtn.addEventListener('click', () => {
+    const ctx = canvas.getContext('2d');
+    const width = 320;
+    const height = 240;
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(video, 0, 0, width, height);
+
+    const dataURL = canvas.toDataURL('image/jpeg', 0.6);
+    fotoInput.value = dataURL;
+
+    // 👁️ Mostrar previsualización (opcional pero útil para pruebas)
+    const preview = document.getElementById('previewImg');
+    if (preview) {
+      preview.src = dataURL;
+    } else {
+      const imgPreview = document.createElement('img');
+      imgPreview.id = 'previewImg';
+      imgPreview.src = dataURL;
+      imgPreview.style.marginTop = '10px';
+      imgPreview.style.maxWidth = '100%';
+      document.querySelector('.form-container').appendChild(imgPreview);
     }
 
-    // Llamar la función de ubicación al cargar la página
-    window.onload = function () {
-      obtenerUbicacion()
-        .then(() => {
-          // Si se obtuvo la ubicación correctamente, permitir abrir la cámara
-          abrirCamaraBtn.style.display = 'inline-block';
-        })
-        .catch((error) => {
-          // Si la ubicación no se obtiene correctamente, no permitir abrir la cámara
-          abrirCamaraBtn.style.display = 'none';
-          console.error("Error obteniendo la ubicación", error);
-        });
-    };
+    alert("📸 Foto capturada. Ahora envía el formulario.");
 
-    abrirCamaraBtn.addEventListener('click', async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-        video.style.display = 'block';
-        tomarFotoBtn.style.display = 'inline-block';
-        cerrarCamaraBtn.style.display = 'inline-block';
-        abrirCamaraBtn.style.display = 'none';
-      } catch (err) {
-        alert("No se pudo acceder a la cámara: " + err.message);
-      }
-    });
+    // Detener cámara
+    stream.getTracks().forEach(track => track.stop());
+    video.style.display = 'none';
+    tomarFotoBtn.style.display = 'none';
+    abrirCamaraBtn.style.display = 'inline-block';
+  });
+</script>
 
-    cerrarCamaraBtn.addEventListener('click', () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      video.style.display = 'none';
-      tomarFotoBtn.style.display = 'none';
-      cerrarCamaraBtn.style.display = 'none';
-      abrirCamaraBtn.style.display = 'inline-block';
-    });
-
-    tomarFotoBtn.addEventListener('click', () => {
-      const contexto = canvas.getContext('2d');
-      canvas.width = 320;
-      canvas.height = 240;
-      contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataURL = canvas.toDataURL('image/jpeg', 0.7);
-
-      const lat = document.getElementById("latitud").value;
-      const lon = document.getElementById("longitud").value;
-
-       // Validar si las coordenadas no están vacías antes de enviar
-      if (!lat || !lon) {
-        resultado.innerText = "❌ No se pudo obtener la ubicación. Asegúrese de que la geolocalización esté habilitada.";
-        return; // Detener la ejecución si no hay ubicación válida
-      }
-
-
-      fetch('/registrar_asistencia', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          foto: dataURL,
-          latitud: lat,
-          longitud: lon
-        })
-      })
-        .then(response => response.json())
-        .then(data => {
-          resultado.innerText = data.message || "✅ Foto enviada correctamente.";
-        })
-        .catch(err => {
-          resultado.innerText = "❌ Error al registrar asistencia.";
-          console.error(err);
-        });
-
-      // Detener la cámara
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      video.style.display = 'none';
-      tomarFotoBtn.style.display = 'none';
-      cerrarCamaraBtn.style.display = 'none';
-      abrirCamaraBtn.style.display = 'inline-block';
-    });
-  </script>
 </html>
