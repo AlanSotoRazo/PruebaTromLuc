@@ -111,7 +111,9 @@
 
     abrirCamaraBtn.addEventListener('click', async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 } }
+       });
         video.srcObject = stream;
         video.style.display = 'block';
         tomarFotoBtn.style.display = 'inline-block';
@@ -183,7 +185,7 @@
               resizedCanvas.height = newH;
               resizedCanvas.getContext('2d').drawImage(originalCanvas, 0, 0, newW, newH);
 
-              const resizedDataURL = resizedCanvas.toDataURL('image/jpeg', 0.6);
+              const resizedDataURL = resizedCanvas.toDataURL('image/jpeg', 0.95);
               fotoInput.value = resizedDataURL;
 
               alert("📸 Foto corregida y capturada. Ahora envía el formulario.");

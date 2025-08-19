@@ -110,7 +110,8 @@ def registrar():
             rgb_img = espejada
 
     if len(rostros) == 0:
-        flash("❌ No se detectó rostro", "error")
+        flash("❌ No se detectó rostro. Asegúrate de estar bien iluminado, de frente y no tan cerca del celular.", "error")
+
         return redirect(url_for('registro'))
     # 👉 FIN DE CAMBIO ALAN 👆
 
@@ -179,7 +180,8 @@ def registrar_asistencia():
                     rgb = espejada
 
         if len(rostros) == 0:
-            return jsonify({'status': 'fail', 'message': '❌ No se detectó rostro. Intenta encuadrarte mejor o mejora la luz.'})
+            return jsonify({'status': 'fail', 'message': '❌ No se detectó rostro. Asegúrate de estar bien iluminado, de frente, y no muy cerca de la cámara.'})
+
         # 👉 FIN DE CAMBIO 👆
 
 
