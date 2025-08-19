@@ -43,6 +43,8 @@ def get_db_connection():
 Path("fotos/entrada").mkdir(parents=True, exist_ok=True)
 Path("fotos/salida").mkdir(parents=True, exist_ok=True)
 
+
+# PERFILES DE ADMINISTRADORES
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -56,7 +58,7 @@ def login():
     return render_template('index.html')
 
 
-# ---------------- REGISTRO Y  ----------------
+# ---------------- REGISTRO   ----------------
 @app.route('/registro')
 def registro():
     conn = get_db_connection()
@@ -82,6 +84,10 @@ def registrar():
     imagen_bytes = base64.b64decode(foto_base64)
     nparr = np.frombuffer(imagen_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    # Redimensionar la imagen antes de pasarla al modelo de reconocimiento facial
+    img = cv2.resize(img, (800, 600))
+
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     rostros = face_recognition.face_encodings(rgb_img)
@@ -107,11 +113,12 @@ def registrar():
 
     return redirect(url_for('registro'))
 
+
 @app.route('/asistencia')
 def asistencia_html():
     return render_template('asistencia.html')
 
-# ---------------- ASISTENCIA  Y PARA EDITAR LATITUD LONGITUD----------------
+# ---------------- ASISTENCIA Y PARA EDITAR LATITUD LONGITUD ----------------
 @app.route('/registrar_asistencia', methods=['POST'])
 def registrar_asistencia():
     try:
@@ -125,6 +132,10 @@ def registrar_asistencia():
         imagen_bytes = base64.b64decode(foto_base64)
         nparr = np.frombuffer(imagen_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        # Redimensionar la imagen antes de procesarla
+        img = cv2.resize(img, (800, 600))
+
         rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         rostros = face_recognition.face_encodings(rgb)
 
@@ -160,7 +171,7 @@ def registrar_asistencia():
 
         nombre_archivo = f"{nombre}_{apellido}_{hoy.strftime('%Y%m%d')}.jpg"
 
-        # ---------------- AQUI SE PONEN CONVERTIDAS LA LATITUD Y LONGITUD DE MAZDA y editas el mensaje----------------
+        # Validación de la ubicación
         lat_min = 20.6123
         lat_max = 20.6133
         lon_min = -101.2385
