@@ -6,6 +6,7 @@ import face_recognition
 import base64
 import json
 import os
+import pytz  # ✅ NUEVO IMPORT
 from datetime import datetime, date
 from pathlib import Path
 import pandas as pd
@@ -42,6 +43,9 @@ def get_db_connection():
 # Crear carpetas si no existen
 Path("fotos/entrada").mkdir(parents=True, exist_ok=True)
 Path("fotos/salida").mkdir(parents=True, exist_ok=True)
+
+# Zona horaria local (CDMX)
+tz = pytz.timezone('America/Mexico_City')  # ✅ Zona horaria definida aquí
 
 
 # PERFILES DE ADMINISTRADORES
@@ -206,8 +210,8 @@ def registrar_asistencia():
 
         matches.sort(key=lambda x: x[3])
         codigo_emp, nombre, apellido, _ = matches[0]
-        hoy = date.today()
-        hora_actual = datetime.now().time()
+        hoy = datetime.now(tz).date()             # ✅ Fecha con zona horaria
+        hora_actual = datetime.now(tz).time()     # ✅ Hora con zona horaria
 
         cursor.execute("SELECT id_asistencia FROM asistencia WHERE fecha = %s AND codigo_emp = %s", (hoy, codigo_emp))
         registro = cursor.fetchone()
