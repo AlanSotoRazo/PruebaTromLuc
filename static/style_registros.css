@@ -54,6 +54,13 @@ header {
   background-color: #C00000;
 }
 
+.container {
+  width: 60%;
+  margin: 20px auto;
+  overflow: visible; /* por defecto sin scroll */
+  max-height: none;  /* sin límite de altura */
+}
+
 
 table {
   width: 60%;
@@ -96,4 +103,26 @@ tr:nth-child(even) {
 
 #btnfiltro:hover{
   background-color: #C00000;
+}
+
+
+
+/* En móviles: scroll vertical y horizontal */
+@media (max-width: 768px) {
+  .container {
+    width: 95%;
+    max-height: 300px;  /* límite de altura para scroll vertical */
+    overflow-y: auto;   /* scroll vertical */
+    overflow-x: auto;   /* scroll horizontal */
+  }
+}
+
+/* En pantallas grandes: scroll también activo con mayor altura */
+@media (min-width: 1024px) {
+  .container {
+    width: 60%;
+    max-height: 400px;  /* límite de altura para scroll vertical */
+    overflow-y: auto;
+    overflow-x: auto;
+  }
 }
