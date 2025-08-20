@@ -198,6 +198,15 @@ input[type="submit"]:hover {
 
 /* ======= ESTILOS RESPONSIVOS ======= */
 @media (max-width: 768px) {
+    body {
+    overflow: auto !important;
+  }
+
+  .form-container {
+    max-height: 90vh;
+    overflow-y: auto;
+    padding-bottom: 60px; /* espacio para botones visibles */
+  }
     .top-nav {
         flex-direction: column;
         align-items: center;
@@ -221,31 +230,8 @@ input[type="submit"]:hover {
         padding: 10px;
         margin-bottom: 5px; /* ⬅️ Espaciado entre botones en móvil */
     }
+     
 
-     main {
-    align-items: flex-start; /* que el formulario quede arriba */
-    overflow-y: auto; /* scroll vertical si se necesita */
-    height: calc(100vh - 60px);
-  }
-
-  .form-container {
-    max-height: 90vh; /* para que no ocupe toda la pantalla */
-    overflow-y: auto; /* scroll interno en el formulario */
-    margin-top: 10px; /* separarlo del header */
-  }
-
-  /* Asegurarse de que los botones siempre estén por encima de la cámara */
-  #video {
-    z-index: -1; /* La cámara detrás de los botones */
-  }
-
-  #abrirCamaraBtn, #tomarFoto {
-    z-index: 10; /* Los botones por encima */
-  }
-
-  #canvas {
-    z-index: 1; /* En caso de que se muestre el canvas, que quede por debajo de los botones */
-  }
 }
 
 /* ✅ MEDIA QUERY PARA PANTALLAS GRANDES */
